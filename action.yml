@@ -1,9 +1,13 @@
 name: Branch Names
-description: Retrieve github branch or tag information without the /ref/* prefix
+description: Retrieve GitHub branch or tag information without the /ref/* prefix
 author: tj-actions
 inputs:
   strip_tag_prefix:
     description: 'The prefix that should be stripped from the tag e.g `v` -> with a tag `v0.0.1` -> returns `0.0.1`'
+    default: ''
+    required: false
+  strip_branch_prefix:
+    description: 'The prefix that should be stripped from the branch e.g `release/` -> with a branch `release/1.0` -> returns `1.0`'
     default: ''
     required: false
 
@@ -43,6 +47,7 @@ runs:
         GITHUB_HEAD_REF: ${{ github.event.pull_request.head.ref || github.head_ref }}
         GITHUB_EVENT_BASE_REF: ${{ github.event.base_ref }}
         INPUTS_STRIP_TAG_PREFIX: ${{ inputs.strip_tag_prefix }}
+        INPUTS_STRIP_BRANCH_PREFIX: ${{ inputs.strip_branch_prefix }}
       run: |
         # "Set branch names..."
         if [[ "$GITHUB_REF" != "refs/tags/"* ]]; then
@@ -55,6 +60,10 @@ runs:
           REF_BRANCH=${REF/refs\/pull\//}
           REF_BRANCH=${REF_BRANCH/refs\/heads\//}
           
+          # Strip branch prefix if provided
+          REF_BRANCH=${REF_BRANCH/$INPUTS_STRIP_BRANCH_PREFIX/}
+          HEAD_REF=${HEAD_REF/$INPUTS_STRIP_BRANCH_PREFIX/}
+
           echo "base_ref_branch=$(eval printf "%s" "$BASE_REF")" >> "$GITHUB_OUTPUT"
           echo "head_ref_branch=$(eval printf "%s" "$HEAD_REF")" >> "$GITHUB_OUTPUT"
           echo "ref_branch=$(eval printf "%s" "$REF_BRANCH")" >> "$GITHUB_OUTPUT"
